@@ -2,6 +2,25 @@
 
 This project deploys a highly available and fault-tolerant web application on AWS using EC2 instances behind an Application Load Balancer (ALB), with an Auto Scaling Group (ASG) spread across multiple Availability Zones and CloudWatch-based scaling.
 
+## Architecture
+
+```mermaid
+flowchart TB
+    U[User / Browser] -->|HTTP :80| ALB[Application Load Balancer]
+    ALB --> TG[Target Group :80 - health check /]
+    subgraph VPC[VPC - 2 Availability Zones]
+      E1[EC2 - AZ a]
+      E2[EC2 - AZ b]
+    end
+    TG --> E1
+    TG --> E2
+    ASG[Auto Scaling Group min 2 / max 4] --- E1
+    ASG --- E2
+    CW[CloudWatch CPU target-tracking] -->|scale in/out| ASG
+```
+
+> Full diagram details: [ARCHITECTURE.md](ARCHITECTURE.md)
+
 ## Skills Covered
 
 - EC2 instance provisioning with user data bootstrap
@@ -12,11 +31,7 @@ This project deploys a highly available and fault-tolerant web application on AW
 - High availability and fault tolerance design
 - Infrastructure as Code with CloudFormation
 
-## Architecture
-
-```
-User -> Application Load Balancer -> Target Group -> Auto Scaling Group (EC2 in AZ-a / AZ-b)
-```
+## How It Works
 
 The ALB distributes incoming traffic across EC2 instances launched by the Auto Scaling Group in two or more Availability Zones. CloudWatch monitors CPU utilization and a target-tracking policy scales the fleet in or out automatically. If an instance or an entire AZ fails, the ALB routes traffic to healthy instances in other zones.
 
